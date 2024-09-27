@@ -1,9 +1,43 @@
 import { Adapter } from 'next-auth/adapters'
 import { prisma } from '../prisma'
+import { NextApiRequest, NextApiResponse } from 'next'
+import { destroyCookie, parseCookies } from 'nookies'
 
-export function PrismaAdapter(): Adapter {
+export function PrismaAdapter(
+  req: NextApiRequest,
+  res: NextApiResponse,
+): Adapter {
   return {
-    async createUser(user) { },
+    async createUser(user) {
+      const { '@ignite:callig:userId': userIdCookies } = parseCookies({ req })
+
+      if (!userIdCookies) {
+        throw new Error('User ID not found on cookies')
+      }
+
+      const prismaUser = await prisma.user.update({
+        where: {
+          id: userIdCookies,
+        },
+        data: {
+          name: user.name,
+          email: user.email,
+          avatar_url: user.avatar_url,
+        },
+      })
+
+      destroyCookie({ res }, '@ignite:callig:userId', {
+        path: '/',
+      })
+      return {
+        id: prismaUser.id,
+        email: prismaUser.email!,
+        name: prismaUser.name,
+        avatar_url: prismaUser.avatar_url!,
+        username: prismaUser.username,
+        emailVerified: null,
+      }
+    },
 
     async getUser(id) {
       const user = await prisma.user.findUnique({
