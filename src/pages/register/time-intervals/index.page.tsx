@@ -13,30 +13,65 @@ import {
   IntervalDay,
   IntervalInput,
   IntervalItem,
+  FormError,
 } from './styles'
 import { ArrowRight } from 'phosphor-react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { weekDaysInPortugues } from '@/src/utils/get-week-days'
+import { convertTimeStringToMinutes } from '@/src/utils/convert-time-in-minutes'
 
-const timeIntervalsFormSchema = z.object({})
+const timeIntervalsFormSchema = z.object({
+  intervals: z
+    .array(
+      z.object({
+        weekDay: z.number().min(0).max(6),
+        enabled: z.boolean(),
+        startTime: z.string(),
+        endTime: z.string(),
+      }),
+    )
+    .length(7)
+    .transform((intervals) => intervals.filter((interval) => interval.enabled))
+    .refine((intervals) => intervals.length > 0, {
+      message: 'Você precisa selecionar pelo menos um dia da semana!',
+    })
+    .transform((intervals) => {
+      return intervals.map((interval) => {
+        return {
+          weekDay: interval.weekDay,
+          startTimeMinutes: convertTimeStringToMinutes(interval.startTime),
+          endTimeMinutes: convertTimeStringToMinutes(interval.endTime),
+        }
+      })
+    })
+    .refine(
+      (intervals) => {
+        return intervals.every(
+          (interval) =>
+            interval.endTimeMinutes - 60 >= interval.startTimeMinutes,
+        )
+      },
+      {
+        message:
+          'O hórario de término deve ser pelo menos 1h distante do início',
+      },
+    ),
+})
 
-const days = [
-  'Domingo',
-  'Segunda-feira',
-  'Terça-feira',
-  'Quarta-feira',
-  'Quinta-feira',
-  'Sexta-feira',
-  'Sábado',
-]
+type TimeIntervalsFormPropsInput = z.input<typeof timeIntervalsFormSchema>
+type TimeIntervalsFormPropsOutput = z.output<typeof timeIntervalsFormSchema>
 
 export default function TimeIntervals() {
   const {
     register,
     handleSubmit,
     control,
-    formState = { errors, isSubmitting },
-  } = useForm({
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<TimeIntervalsFormPropsInput>({
+    resolver: zodResolver(timeIntervalsFormSchema),
     defaultValues: {
       intervals: [
         { weekDay: 0, enabled: false, startTime: '08:00', endTime: '18:00' },
@@ -55,7 +90,13 @@ export default function TimeIntervals() {
     name: 'intervals',
   })
 
-  async function handleSetTimeIntervals() { }
+  const intervals = watch('intervals')
+
+  async function handleSetTimeIntervals(data: any) {
+    const formData = data as TimeIntervalsFormPropsOutput
+
+    console.log(formData)
+  }
 
   return (
     <Container>
@@ -81,30 +122,30 @@ export default function TimeIntervals() {
                     render={({ field: { onChange, value } }) => {
                       return (
                         <Checkbox
-                          onCheckedChange={(checked) =>
+                          onCheckedChange={(checked) => {
                             onChange(checked === true)
-                          }
+                          }}
                           checked={value}
                         />
                       )
                     }}
                   />
-                  <Text>{days[field.weekDay]}</Text>
+                  <Text>{weekDaysInPortugues[field.weekDay]}</Text>
                 </IntervalDay>
                 <IntervalInput>
                   <TextInput
                     size="sm"
                     type="time"
                     step={60}
-                    value={`intervals.${index}.startTime`}
                     {...register(`intervals.${index}.startTime`)}
+                    disabled={intervals[index].enabled === false}
                   />
                   <TextInput
                     size="sm"
                     type="time"
                     step={60}
-                    value={`intervals.${index}.endTime`}
                     {...register(`intervals.${index}.endTime`)}
+                    disabled={intervals[index].enabled === false}
                   />
                 </IntervalInput>
               </IntervalItem>
@@ -112,7 +153,11 @@ export default function TimeIntervals() {
           })}
         </IntervalContainer>
 
-        <Button type="submit">
+        {errors.intervals && (
+          <FormError size="sm">{errors.intervals.root?.message}</FormError>
+        )}
+
+        <Button type="submit" disabled={isSubmitting}>
           Próximo passo
           <ArrowRight />
         </Button>
