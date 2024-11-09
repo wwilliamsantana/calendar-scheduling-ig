@@ -30,7 +30,7 @@ export default async function handler(
   const isPasteDate = referenceDate.endOf('day').isBefore(new Date())
 
   if (isPasteDate) {
-    return res.json({ availability: [] })
+    return res.json({ possibleTimes: [], availableTimes: [] })
   }
 
   const userAvailability = await prisma.userTimeIntervals.findFirst({
@@ -41,7 +41,7 @@ export default async function handler(
   })
 
   if (!userAvailability) {
-    return res.json({ availability: [] })
+    return res.json({ possibleTimes: [], availableTimes: [] })
   }
 
   /* eslint-disable */
@@ -73,6 +73,6 @@ export default async function handler(
   const availableTimes = possibleTimes.filter(time => {
     return !blockedTimes.some(blockedTime => blockedTime.date.getHours() === time)
   })
-  console.log(availableTimes)
+
   return res.json({ possibleTimes, availableTimes })
 }
