@@ -57,7 +57,7 @@ export default async function handler(
     },
   )
 
-  const blockedTimes = await prisma.scheduling.findMany({
+  const blockedTimes = await prisma.schedulings.findMany({
     select: {
       date: true
     },
