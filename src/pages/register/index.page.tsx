@@ -72,7 +72,7 @@ export default function Register() {
         <label>
           <Text size="sm">Nome do usuário</Text>
           <TextInput
-            placeholder={'seu-usuario'}
+            placeholder={'seu usuario'}
             prefix={'calendar.com/'}
             {...register('username')}
           />
@@ -82,7 +82,7 @@ export default function Register() {
         </label>
         <label>
           <Text size="sm">Nome completo</Text>
-          <TextInput placeholder={'nome-completo'} {...register('name')} />
+          <TextInput placeholder={'nome completo'} {...register('name')} />
           {errors.name && (
             <FormError size="sm">{errors.name.message}</FormError>
           )}
