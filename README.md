@@ -8,23 +8,22 @@
 
 ## Tecnologia usadas
 
-- NEXT 
-- REACT
+- Next 
+- React
 - Módulo de componentes personalizados, criado por mim (ignite-ui/react)
-- AXIOS
-- DAYJS
-- NEXT-AUTH
-- NEXT-SEO
-- REACT-HOOK-FORM
-- ZOD
-- NOOKIES
-- GOOGLEAPI
-- REACT-QUERY
-- ESLINT
-
-- PRISMA
-- MYSQL
-- DOCKER
+- Axios
+- Dayjs
+- Next-Auth
+- Next-Seo
+- React-hook-form
+- Zod
+- Nookies
+- GoogleAPI
+- React-query
+- Eslint
+- Prisma
+- MySQL
+- Docker
 
 ## Execução do projeto
 
